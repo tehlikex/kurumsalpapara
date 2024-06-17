@@ -10,6 +10,7 @@ Bu, Papara API kullanarak yapılan ödemeleri doğrulayan ve hesap bakiyesini ko
 - Papara hesap bakiyesini kontrol eder.
 - Kullanıcılara QR Kod, POS ve Uygulama ile ödeme seçenekleri sunar.
 - Kullanıcıların istediği tutarda ödeme yapabilmelerine olanak tanır.
+- Ödeme ve bakiye bilgilerini SQLite veritabanında saklar.
 
 ## Gereksinimler
 
@@ -22,8 +23,8 @@ Bu, Papara API kullanarak yapılan ödemeleri doğrulayan ve hesap bakiyesini ko
 1. Depoyu klonlayın:
 
     ```sh
-    git clone https://github.com/kullaniciadi/papara-payment-bot.git
-    cd papara-payment-bot
+    git clone https://github.com/yaaniyakup/kurumsalpapara.git
+    cd kurumsalpapara
     ```
 
 2. Gerekli Python paketlerini yükleyin:
@@ -54,12 +55,13 @@ Bu, Papara API kullanarak yapılan ödemeleri doğrulayan ve hesap bakiyesini ko
     - `/pay` komutunu kullanarak ödeme bilgisi isteyin ve tutarı girin.
     - `/payment` komutunu kullanarak ödeme yöntemini seçin (QR Kod, POS, Uygulama).
     - `/confirm` komutunu kullanarak ödemeyi onaylayın.
-    - `/balance` komutunu kullanarak Papara hesap bakiyenizi öğrenin.
+    - `/balance` komutunu kullanarak bakiyenizi öğrenin.
 
 ## Dosya Açıklamaları
 
 - `papara_payment_bot.py`: Telegram komutlarını ve ödeme doğrulamasını yöneten ana bot betiği.
 - `papara_api.py`: Papara API'sini kullanarak ödeme doğrulaması ve bakiye kontrolü yapan betik.
+- `database.py`: Kullanıcı bakiyelerini ve ödeme bilgilerini yönetmek için SQLite veritabanını yöneten betik.
 - `config.py`: API anahtarları ve yapılandırma bilgilerini içeren dosya.
 
 ## Telegram Komutları
@@ -68,7 +70,7 @@ Bu, Papara API kullanarak yapılan ödemeleri doğrulayan ve hesap bakiyesini ko
 - `/pay`: Benzersiz bir ödeme açıklaması oluşturur ve ödeme talimatlarını gönderir.
 - `/payment`: Kullanıcının seçtiği ödeme yöntemine göre ödeme işlemini başlatır (QR Kod, POS, Uygulama).
 - `/confirm`: Ödeme doğrulamasını kontrol eder ve kullanıcıyı bilgilendirir.
-- `/balance`: Papara hesap bakiyesini gösterir.
+- `/balance`: Kullanıcının bakiyesini gösterir.
 
 ## Notlar
 
