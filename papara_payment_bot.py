@@ -3,6 +3,7 @@ import time
 from telegram import Update, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from papara_api import get_account_balance, create_payment, check_payment
+from database import init_db, get_balance, update_balance, add_payment, update_payment_status, get_payment
 from config import PAPARA_API_KEY
 
 # Logging ayarları
@@ -14,6 +15,9 @@ logger = logging.getLogger(__name__)
 
 # Yapılandırma bilgileri
 TELEGRAM_BOT_TOKEN = 'your_telegram_bot_token'
+
+# Veritabanını başlatma
+init_db()
 
 # Ödeme bilgilerini saklamak için basit bir yapı
 user_payments = {}
@@ -47,6 +51,9 @@ async def amount(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             amount = float(update.message.text)
             user_payments[user.id]['amount'] = amount
+
+            # Veritabanına ödeme ekleme
+            add_payment(user.id, user_payments[user.id]['description'], amount)
 
             keyboard = [['QR Kod', 'POS', 'Uygulama']]
             reply_markup = ReplyKeyboardMarkup(keyboard, one_time_keyboard=True)
@@ -95,6 +102,11 @@ async def confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
         if check_payment(description):
             await update.message.reply_text('Ödemeniz başarıyla alındı! Teşekkür ederiz.')
+
+            # Ödeme durumunu ve kullanıcı bakiyesini güncelle
+            update_payment_status(description, 'completed')
+            payment_info = get_payment(description)
+            update_balance(user.id, payment_info[2])  # payment_info[2] = amount
             del user_payments[user.id]
         else:
             await update.message.reply_text('Henüz ödeme alınmadı. Lütfen tekrar kontrol edin.')
@@ -103,11 +115,12 @@ async def confirm(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 # /balance komutu
 async def balance(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    balance = get_account_balance()
+    user = update.effective_user
+    balance = get_balance(user.id)
     if balance is not None:
-        await update.message.reply_text(f'Papara hesap bakiyeniz: {balance} TL')
+        await update.message.reply_text(f'Bakiyeniz: {balance} TL')
     else:
-        await update.message.reply_text('Bakiyenizi kontrol ederken bir hata oluştu.')
+        await update.message.reply_text('Bakiyeniz bulunmamaktadır.')
 
 def main() -> None:
     application = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
